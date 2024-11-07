@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::path::Path;
+
 use tauri::{
     plugin::{Builder, TauriPlugin},
     AppHandle, Manager, Runtime,
@@ -19,9 +21,13 @@ mod error;
 mod open;
 mod scope;
 mod scope_entry;
+mod show_item_in_dir;
 
 pub use error::Error;
 type Result<T> = std::result::Result<T, Error>;
+
+pub use open::{open, Program};
+pub use show_item_in_dir::show_item_in_dir;
 
 pub struct Opener<R: Runtime> {
     #[allow(dead_code)]
@@ -43,6 +49,10 @@ impl<R: Runtime> Opener<R> {
         self.mobile_plugin_handle
             .run_mobile_plugin("open", path.into())
             .map_err(Into::into)
+    }
+
+    pub fn show_item_in_dir<P: AsRef<Path>>(&self, p: P) -> Result<()> {
+        show_item_in_dir::show_item_in_dir(p)
     }
 }
 

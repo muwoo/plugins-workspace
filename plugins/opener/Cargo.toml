@@ -38,3 +38,16 @@ open = { version = "5", features = ["shellexecute-on-windows"] }
 urlpattern = { workspace = true }
 regex = "1"
 url = { workspace = true }
+
+[target."cfg(windows)".dependencies]
+dunce = { workspace = true }
+
+[target."cfg(windows)".dependencies.windows]
+version = "0.54"
+features = [
+    "Win32_Foundation",
+    "Win32_UI_Shell_Common",
+    "Win32_UI_WindowsAndMessaging",
+    "Win32_System_Com",
+    "Win32_System_Registry",
+]

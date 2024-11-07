@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::path::PathBuf;
+
 use serde::{Serialize, Serializer};
 
 #[derive(Debug, thiserror::Error)]
@@ -19,6 +21,15 @@ pub enum Error {
     UnknownProgramName(String),
     #[error("Not allowed to open {0}")]
     NotAllowed(String),
+    /// API not supported on the current platform
+    #[error("API not supported on the current platform")]
+    UnsupportedPlatform,
+    #[error(transparent)]
+    #[cfg(windows)]
+    Win32Error(#[from] windows::core::Error),
+    /// Path doesn't have a parent.
+    #[error("Path doesn't have a parent: {0}")]
+    NoParent(PathBuf),
 }
 
 impl Serialize for Error {
