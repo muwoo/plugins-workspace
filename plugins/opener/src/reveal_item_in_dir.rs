@@ -1,13 +1,12 @@
 use std::path::Path;
-use std::path::PathBuf;
 
 /// Show
 ///
 /// ## Platform-specific:
 ///
 /// - **Android / iOS:** Unsupported.
-pub fn show_item_in_dir<P: AsRef<Path>>(p: P) -> crate::Result<()> {
-    let p = p.as_ref().canonicalize()?;
+pub fn reveal_item_in_dir<P: AsRef<Path>>(path: P) -> crate::Result<()> {
+    let path = path.as_ref().canonicalize()?;
 
     #[cfg(any(
         windows,
@@ -18,7 +17,7 @@ pub fn show_item_in_dir<P: AsRef<Path>>(p: P) -> crate::Result<()> {
         target_os = "netbsd",
         target_os = "openbsd"
     ))]
-    return imp::show_item_in_dir(p);
+    return imp::reveal_item_in_dir(&path);
 
     #[cfg(not(any(
         windows,
@@ -51,8 +50,8 @@ mod imp {
         },
     };
 
-    pub fn show_item_in_dir(p: PathBuf) -> crate::Result<()> {
-        let file = dunce::simplified(&p);
+    pub fn reveal_item_in_dir(path: &Path) -> crate::Result<()> {
+        let file = dunce::simplified(path);
 
         let _ = unsafe { CoInitialize(None) };
 
@@ -105,10 +104,63 @@ mod imp {
     target_os = "openbsd"
 ))]
 mod imp {
+
+    use std::collections::HashMap;
+
     use super::*;
 
-    pub fn show_item_in_dir(p: PathBuf) -> crate::Result<()> {
-        Ok(())
+    pub fn reveal_item_in_dir(path: &Path) -> crate::Result<()> {
+        let connection = zbus::blocking::Connection::session()?;
+
+        reveal_with_filemanager1(path, &connection)
+            .or_else(|_| reveal_with_open_uri_portal(path, &connection))
+    }
+
+    fn reveal_with_filemanager1(
+        path: &Path,
+        connection: &zbus::blocking::Connection,
+    ) -> crate::Result<()> {
+        let uri = url::Url::from_file_path(path)
+            .map_err(|_| crate::Error::FailedToConvertPathToFileUrl)?;
+
+        #[zbus::proxy(
+            interface = "org.freedesktop.FileManager1",
+            default_service = "org.freedesktop.FileManager1",
+            default_path = "/org/freedesktop/FileManager1"
+        )]
+        trait FileManager1 {
+            async fn ShowItems(&self, name: Vec<&str>, arg2: &str) -> crate::Result<()>;
+        }
+
+        let proxy = FileManager1ProxyBlocking::new(connection)?;
+
+        proxy.ShowItems(vec![uri.as_str()], "")
+    }
+
+    fn reveal_with_open_uri_portal(
+        path: &Path,
+        connection: &zbus::blocking::Connection,
+    ) -> crate::Result<()> {
+        let uri = url::Url::from_file_path(path)
+            .map_err(|_| crate::Error::FailedToConvertPathToFileUrl)?;
+
+        #[zbus::proxy(
+            interface = "org.freedesktop.portal.Desktop",
+            default_service = "org.freedesktop.portal.OpenURI",
+            default_path = "/org/freedesktop/portal/desktop"
+        )]
+        trait PortalDesktop {
+            async fn OpenDirectory(
+                &self,
+                arg1: &str,
+                name: &str,
+                arg3: HashMap<&str, &str>,
+            ) -> crate::Result<()>;
+        }
+
+        let proxy = PortalDesktopProxyBlocking::new(connection)?;
+
+        proxy.OpenDirectory("", uri.as_str(), HashMap::new())
     }
 }
 
@@ -116,5 +168,5 @@ mod imp {
 mod imp {
     use super::*;
 
-    pub fn show_item_in_dir(p: PathBuf) -> crate::Result<()> {}
+    pub fn reveal_item_in_dir(path: &Path) -> crate::Result<()> {}
 }

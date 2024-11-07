@@ -7,6 +7,7 @@ use std::path::PathBuf;
 use serde::{Serialize, Serializer};
 
 #[derive(Debug, thiserror::Error)]
+#[non_exhaustive]
 pub enum Error {
     #[cfg(mobile)]
     #[error(transparent)]
@@ -21,15 +22,24 @@ pub enum Error {
     UnknownProgramName(String),
     #[error("Not allowed to open {0}")]
     NotAllowed(String),
-    /// API not supported on the current platform
     #[error("API not supported on the current platform")]
     UnsupportedPlatform,
     #[error(transparent)]
     #[cfg(windows)]
     Win32Error(#[from] windows::core::Error),
-    /// Path doesn't have a parent.
     #[error("Path doesn't have a parent: {0}")]
     NoParent(PathBuf),
+    #[error("Failed to convert path to file:// url")]
+    FailedToConvertPathToFileUrl,
+    #[error(transparent)]
+    #[cfg(any(
+        target_os = "linux",
+        target_os = "dragonfly",
+        target_os = "freebsd",
+        target_os = "netbsd",
+        target_os = "openbsd"
+    ))]
+    Zbus(#[from] zbus::Error),
 }
 
 impl Serialize for Error {

@@ -19,15 +19,15 @@ tauri::ios_plugin_binding!(init_plugin_opener);
 mod commands;
 mod error;
 mod open;
+mod reveal_item_in_dir;
 mod scope;
 mod scope_entry;
-mod show_item_in_dir;
 
 pub use error::Error;
 type Result<T> = std::result::Result<T, Error>;
 
 pub use open::{open, Program};
-pub use show_item_in_dir::show_item_in_dir;
+pub use reveal_item_in_dir::reveal_item_in_dir;
 
 pub struct Opener<R: Runtime> {
     #[allow(dead_code)]
@@ -51,8 +51,8 @@ impl<R: Runtime> Opener<R> {
             .map_err(Into::into)
     }
 
-    pub fn show_item_in_dir<P: AsRef<Path>>(&self, p: P) -> Result<()> {
-        show_item_in_dir::show_item_in_dir(p)
+    pub fn reveal_item_in_dir<P: AsRef<Path>>(&self, p: P) -> Result<()> {
+        reveal_item_in_dir::reveal_item_in_dir(p)
     }
 }
 

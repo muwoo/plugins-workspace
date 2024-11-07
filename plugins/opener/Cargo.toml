@@ -51,3 +51,6 @@ features = [
     "Win32_System_Com",
     "Win32_System_Registry",
 ]
+
+[target."cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"netbsd\", target_os = \"openbsd\"))".dependencies]
+zbus = { workspace = true }
