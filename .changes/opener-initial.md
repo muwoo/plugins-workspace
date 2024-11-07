@@ -1,6 +1,6 @@
 ---
-"opener": "patch"
-"opener-js": "patch"
+"opener": "major"
+"opener-js": "major"
 ---
 
 Initial Release
