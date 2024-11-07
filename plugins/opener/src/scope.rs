@@ -9,7 +9,7 @@ use crate::{scope_entry::EntryRaw, Error};
 
 #[derive(Debug)]
 pub enum Entry {
-    Url(urlpattern::UrlPattern),
+    Url(Box<urlpattern::UrlPattern>),
     Path(Option<PathBuf>),
 }
 
@@ -44,12 +44,14 @@ impl ScopeObject for Entry {
         serde_json::from_value(raw.into())
             .and_then(|raw| {
                 let entry = match raw {
-                    EntryRaw::Url { url } => Entry::Url(parse_url_pattern(&url).map_err(|e| {
-                        serde::de::Error::custom(format!(
-                            "`{}` is not a valid URL pattern: {e}",
-                            url
-                        ))
-                    })?),
+                    EntryRaw::Url { url } => {
+                        let url_pattern = parse_url_pattern(&url).map_err(|e| {
+                            serde::de::Error::custom(format!(
+                                "`{url}` is not a valid URL pattern: {e}"
+                            ))
+                        })?;
+                        Entry::Url(Box::new(url_pattern))
+                    }
                     EntryRaw::Path { path } => {
                         let path = match app.path().parse(path) {
                             Ok(path) => Some(path),

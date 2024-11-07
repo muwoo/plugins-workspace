@@ -295,6 +295,11 @@
       "type": "string",
       "oneOf": [
         {
+          "description": "This enables opening `mailto:`, `tel:`, `https://` and `http://` urls using their default application.",
+          "type": "string",
+          "const": "allow-default-urls"
+        },
+        {
           "description": "Enables the open command without any pre-configured scope.",
           "type": "string",
           "const": "allow-open"
@@ -323,11 +328,6 @@
           "description": "Denies the reveal_item_in_dir command without any pre-configured scope.",
           "type": "string",
           "const": "deny-reveal-item-in-dir"
-        },
-        {
-          "description": "This enables opening `mailto:`, `tel:`, `https://` and `http://` urls using their default application.",
-          "type": "string",
-          "const": "default-urls"
         },
         {
           "description": "This permission set allows opening `mailto:`, `tel:`, `https://` and `http://` urls using their default application\nas well as reveal file in directories using default file explorer",
