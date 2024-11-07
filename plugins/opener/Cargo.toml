@@ -24,13 +24,17 @@ ios = { level = "partial", notes = "Only allows to open URLs via `open`" }
 
 [build-dependencies]
 tauri-plugin = { workspace = true, features = ["build"] }
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+schemars = { workspace = true }
+serde = { workspace = true }
+urlpattern = { workspace = true }
+regex = "1"
 
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
 tauri = { workspace = true }
 thiserror = { workspace = true }
-regex = "1"
 open = { version = "5", features = ["shellexecute-on-windows"] }
+urlpattern = { workspace = true }
+regex = "1"
+url = { workspace = true }

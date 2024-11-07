@@ -16,7 +16,6 @@
     },
     "core:default",
     "fs:default",
-    "opener:default",
     "core:window:allow-minimize",
     "core:window:allow-maximize",
     "core:window:allow-unmaximize",
@@ -81,6 +80,7 @@
       ],
       "deny": ["$APPDATA/db/*.stronghold"]
     },
-    "store:default"
+    "store:default",
+    "opener:default"
   ]
 }

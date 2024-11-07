@@ -10,18 +10,15 @@ pub enum Error {
     #[error(transparent)]
     PluginInvoke(#[from] tauri::plugin::mobile::PluginInvokeError),
     #[error(transparent)]
+    Tauri(#[from] tauri::Error),
+    #[error(transparent)]
     Io(#[from] std::io::Error),
+    #[error(transparent)]
+    Json(#[from] serde_json::Error),
     #[error("unknown program {0}")]
     UnknownProgramName(String),
-    /// At least one argument did not pass input validation.
-    #[error("Scoped command argument at position {index} was found, but failed regex validation {validation}")]
-    Validation {
-        /// Index of the variable.
-        index: usize,
-
-        /// Regex that the variable value failed to match.
-        validation: String,
-    },
+    #[error("Not allowed to open {0}")]
+    NotAllowed(String),
 }
 
 impl Serialize for Error {

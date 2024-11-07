@@ -6,11 +6,10 @@
 
 use serde::{Deserialize, Deserializer};
 
-use std::str::FromStr;
-
-use crate::{config::OpenScope, Error};
+use std::{fmt::Display, str::FromStr};
 
 /// Program to use on the [`open()`] call.
+#[derive(Debug)]
 pub enum Program {
     /// Use the `open` program.
     Open,
@@ -34,6 +33,28 @@ pub enum Program {
     Chromium,
     /// Use the `Safari` program.
     Safari,
+}
+
+impl Display for Program {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Open => "open",
+                Self::Start => "start",
+                Self::XdgOpen => "xdg-open",
+                Self::Gio => "gio",
+                Self::GnomeOpen => "gnome-open",
+                Self::KdeOpen => "kde-open",
+                Self::WslView => "wslview",
+                Self::Firefox => "firefox",
+                Self::Chrome => "chrome",
+                Self::Chromium => "chromium",
+                Self::Safari => "safari",
+            }
+        )
+    }
 }
 
 impl FromStr for Program {
@@ -118,18 +139,18 @@ impl Program {
 ///     Ok(())
 ///   });
 /// ```
-pub fn open<P: AsRef<str>>(scope: &OpenScope, path: P, with: Option<Program>) -> crate::Result<()> {
+pub fn open<P: AsRef<str>>(path: P, with: Option<Program>) -> crate::Result<()> {
     let path = path.as_ref();
 
-    // ensure we pass validation if the configuration has one
-    if let Some(regex) = &scope.open {
-        if !regex.is_match(path) {
-            return Err(Error::Validation {
-                index: 0,
-                validation: regex.as_str().into(),
-            });
-        }
-    }
+    // // ensure we pass validation if the configuration has one
+    // if let Some(regex) = &scope.open {
+    //     if !regex.is_match(path) {
+    //         return Err(Error::Validation {
+    //             index: 0,
+    //             validation: regex.as_str().into(),
+    //         });
+    //     }
+    // }
 
     // The prevention of argument escaping is handled by the usage of std::process::Command::arg by
     // the `open` dependency. This behavior should be re-confirmed during upgrades of `open`.

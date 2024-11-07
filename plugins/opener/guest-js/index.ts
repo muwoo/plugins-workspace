@@ -53,5 +53,5 @@ export async function open(path: string, openWith?: string): Promise<void> {
   })
 }
 export async function revealInDir() {
-  return invoke('plugin:opener|reveal_in_dir')
+  return invoke('plugin:opener|reveal_item_in_dir')
 }

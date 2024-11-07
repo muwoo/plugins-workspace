@@ -27,7 +27,10 @@
 </script>
 
 <div class="flex flex-col">
-  <div class="flex flex-row gap-2 items-center">
+  <form
+    class="flex flex-row gap-2 items-center"
+    on:submit|preventDefault={openPath}
+  >
     <input
       class="input grow"
       placeholder="Type the path to watch..."
@@ -42,6 +45,6 @@
       {/each}
     </select>
 
-    <button class="btn" on:click={openPath}>Open</button>
-  </div>
+    <button class="btn" type="submit">Open</button>
+  </form>
 </div>

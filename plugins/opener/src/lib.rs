@@ -2,7 +2,6 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use config::OpenScope;
 use tauri::{
     plugin::{Builder, TauriPlugin},
     AppHandle, Manager, Runtime,
@@ -16,9 +15,10 @@ const PLUGIN_IDENTIFIER: &str = "app.tauri.opener";
 tauri::ios_plugin_binding!(init_plugin_opener);
 
 mod commands;
-mod config;
 mod error;
 mod open;
+mod scope;
+mod scope_entry;
 
 pub use error::Error;
 type Result<T> = std::result::Result<T, Error>;
@@ -28,21 +28,16 @@ pub struct Opener<R: Runtime> {
     app: AppHandle<R>,
     #[cfg(mobile)]
     mobile_plugin_handle: PluginHandle<R>,
-    open_scope: OpenScope,
 }
 
 impl<R: Runtime> Opener<R> {
     /// Open a (url) path with a default or specific browser opening program.
-    ///
-    /// See [`crate::open::open`] for how it handles security-related measures.
     #[cfg(desktop)]
     pub fn open(&self, path: impl Into<String>, with: Option<open::Program>) -> Result<()> {
-        open::open(&self.open_scope, path.into(), with).map_err(Into::into)
+        open::open(path.into(), with).map_err(Into::into)
     }
 
     /// Open a (url) path with a default or specific browser opening program.
-    ///
-    /// See [`crate::open::open`] for how it handles security-related measures.
     #[cfg(mobile)]
     pub fn open(&self, path: impl Into<String>, _with: Option<open::Program>) -> Result<()> {
         self.mobile_plugin_handle
@@ -63,13 +58,10 @@ impl<R: Runtime, T: Manager<R>> crate::OpenerExt<R> for T {
 }
 
 /// Initializes the plugin.
-pub fn init<R: Runtime>() -> TauriPlugin<R, Option<config::Config>> {
-    Builder::<R, Option<config::Config>>::new("opener")
+pub fn init<R: Runtime>() -> TauriPlugin<R> {
+    Builder::new("opener")
         .js_init_script(include_str!("init-iife.js").to_string())
-        .setup(|app, api| {
-            let default_config = config::Config::default();
-            let config = api.config().as_ref().unwrap_or(&default_config);
-
+        .setup(|app, _api| {
             #[cfg(target_os = "android")]
             let handle = api.register_android_plugin(PLUGIN_IDENTIFIER, "OpenerPlugin")?;
             #[cfg(target_os = "ios")]
@@ -77,7 +69,6 @@ pub fn init<R: Runtime>() -> TauriPlugin<R, Option<config::Config>> {
 
             app.manage(Opener {
                 app: app.clone(),
-                open_scope: config.open_scope(),
                 #[cfg(mobile)]
                 mobile_plugin_handle: handle,
             });
@@ -85,7 +76,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R, Option<config::Config>> {
         })
         .invoke_handler(tauri::generate_handler![
             commands::open,
-            commands::reveal_in_dir
+            commands::reveal_item_in_dir
         ])
         .build()
 }
