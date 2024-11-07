@@ -167,6 +167,17 @@ mod imp {
 #[cfg(target_os = "macos")]
 mod imp {
     use super::*;
+    use objc2_app_kit::NSWorkspace;
+    use objc2_foundation::{NSArray, NSString, NSURL};
+    pub fn reveal_item_in_dir(path: &Path) -> crate::Result<()> {
+        unsafe {
+            let path = path.to_string_lossy();
+            let path = NSString::from_str(&path);
+            let urls = vec![NSURL::fileURLWithPath(&path)];
+            let urls = NSArray::from_vec(urls);
 
-    pub fn reveal_item_in_dir(path: &Path) -> crate::Result<()> {}
+            let workspace = NSWorkspace::new();
+            workspace.activateFileViewerSelectingURLs(&urls);
+        }
+    }
 }

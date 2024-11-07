@@ -54,3 +54,11 @@ features = [
 
 [target."cfg(any(target_os = \"linux\", target_os = \"dragonfly\", target_os = \"freebsd\", target_os = \"netbsd\", target_os = \"openbsd\"))".dependencies]
 zbus = { workspace = true }
+
+[target."cfg(target_os = \"macos\")".dependencies.objc2-app-kit]
+version = "0.2"
+features = ["NSWorkspace"]
+
+[target."cfg(target_os = \"macos\")".dependencies.objc2-foundation]
+version = "0.2"
+features = ["NSURL", "NSArray", "NSString"]
