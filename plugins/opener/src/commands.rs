@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
+use std::path::PathBuf;
+
 use tauri::{
     ipc::{CommandScope, GlobalScope},
     AppHandle, Runtime,
@@ -32,11 +34,13 @@ pub async fn open<R: Runtime>(
     );
 
     if scope.is_allowed(&path)? {
-        crate::open::open(path, with)
+        crate::open(path, with)
     } else {
         Err(Error::NotAllowed(path))
     }
 }
 
 #[tauri::command]
-pub async fn reveal_item_in_dir() {}
+pub async fn reveal_item_in_dir(path: PathBuf) -> crate::Result<()> {
+    crate::reveal_item_in_dir(path)
+}

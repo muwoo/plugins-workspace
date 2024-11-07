@@ -4,7 +4,7 @@
 
 use std::path::Path;
 
-/// Show
+/// Reveal a path the system's default explorer.
 ///
 /// ## Platform-specific:
 ///

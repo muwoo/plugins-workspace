@@ -39,8 +39,6 @@ import { invoke } from '@tauri-apps/api/core'
  * ```
  *
  * @param path The path or URL to open.
- * This value is matched against the string regex defined on `tauri.conf.json > plugins > opener > open`,
- * which defaults to `^((mailto:\w+)|(tel:\w+)|(https?://\w+)).+`.
  * @param openWith The app to open the file or URL with.
  * Defaults to the system default application for the specified path type.
  *
@@ -52,6 +50,24 @@ export async function open(path: string, openWith?: string): Promise<void> {
     with: openWith
   })
 }
-export async function revealInDir() {
-  return invoke('plugin:opener|reveal_item_in_dir')
+
+/**
+ * Reveal a path the system's default explorer.
+ *
+ * #### Platform-specific:
+ *
+ * - **Android / iOS:** Unsupported.
+ *
+ * @example
+ * ```typescript
+ * import { revealItemInDir } from '@tauri-apps/plugin-opener';
+ * await revealItemInDir('/path/to/file');
+ * ```
+ *
+ * @param path The path to reveal.
+ *
+ * @since 2.0.0
+ */
+export async function revealItemInDir(path: string) {
+  return invoke('plugin:opener|reveal_item_in_dir', { path })
 }
