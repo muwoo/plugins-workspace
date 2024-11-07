@@ -6,11 +6,11 @@
 
 use serde::{Deserialize, Deserializer};
 
-use crate::scope::OpenScope;
 use std::str::FromStr;
 
+use crate::{config::OpenScope, Error};
+
 /// Program to use on the [`open()`] call.
-#[deprecated(since = "2.1.0", note = "Use tauri-plugin-opener instead.")]
 pub enum Program {
     /// Use the `open` program.
     Open,
@@ -118,7 +118,24 @@ impl Program {
 ///     Ok(())
 ///   });
 /// ```
-#[deprecated(since = "2.1.0", note = "Use tauri-plugin-opener instead.")]
 pub fn open<P: AsRef<str>>(scope: &OpenScope, path: P, with: Option<Program>) -> crate::Result<()> {
-    scope.open(path.as_ref(), with).map_err(Into::into)
+    let path = path.as_ref();
+
+    // ensure we pass validation if the configuration has one
+    if let Some(regex) = &scope.open {
+        if !regex.is_match(path) {
+            return Err(Error::Validation {
+                index: 0,
+                validation: regex.as_str().into(),
+            });
+        }
+    }
+
+    // The prevention of argument escaping is handled by the usage of std::process::Command::arg by
+    // the `open` dependency. This behavior should be re-confirmed during upgrades of `open`.
+    match with.map(Program::name) {
+        Some(program) => ::open::with_detached(path, program),
+        None => ::open::that_detached(path),
+    }
+    .map_err(Into::into)
 }

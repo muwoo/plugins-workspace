@@ -1,0 +1,4 @@
+"$schema" = "schemas/schema.json"
+
+[default]
+permissions = ["allow-open", "allow-reveal-in-dir"]

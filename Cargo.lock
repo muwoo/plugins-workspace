@@ -226,6 +226,7 @@ dependencies = [
  "tauri-plugin-log",
  "tauri-plugin-nfc",
  "tauri-plugin-notification",
+ "tauri-plugin-opener",
  "tauri-plugin-os",
  "tauri-plugin-process",
  "tauri-plugin-shell",
@@ -6577,6 +6578,19 @@ dependencies = [
  "url",
  "win7-notifications",
  "windows-version",
+]
+
+[[package]]
+name = "tauri-plugin-opener"
+version = "2.0.0"
+dependencies = [
+ "open",
+ "regex",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror",
 ]
 
 [[package]]
