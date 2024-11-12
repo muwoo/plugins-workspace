@@ -20,7 +20,7 @@ pub enum Error {
     Json(#[from] serde_json::Error),
     #[error("unknown program {0}")]
     UnknownProgramName(String),
-    #[error("Not allowed to open {0}")]
+    #[error("Not allowed to open forbidden path or url: {0}")]
     NotAllowed(String),
     #[error("API not supported on the current platform")]
     UnsupportedPlatform,
