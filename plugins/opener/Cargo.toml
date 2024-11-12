@@ -60,3 +60,6 @@ features = ["NSWorkspace"]
 [target."cfg(target_os = \"macos\")".dependencies.objc2-foundation]
 version = "0.2"
 features = ["NSURL", "NSArray", "NSString"]
+
+[target.'cfg(target_os = "ios")'.dependencies]
+tauri = { workspace = true, features = ["wry"] }
