@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: Apache-2.0
 // SPDX-License-Identifier: MIT
 
-use std::{marker::PhantomData, path::PathBuf, sync::Arc};
+use std::{
+    marker::PhantomData,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 
 use tauri::{ipc::ScopeObject, utils::acl::Value, AppHandle, Manager, Runtime};
-
-use url::Url;
 
 use crate::{scope_entry::EntryRaw, Error};
 
@@ -70,30 +72,22 @@ impl<'a, R: Runtime, M: Manager<R>> Scope<'a, R, M> {
         }
     }
 
-    pub fn is_allowed(&self, path_or_url: &str) -> crate::Result<bool> {
-        let url = Url::parse(path_or_url).ok();
-        match url {
-            Some(url) => Ok(self.is_url_allowed(url)),
-            None => self.is_path_allowed(path_or_url),
-        }
-    }
-
-    pub fn is_url_allowed(&self, url: Url) -> bool {
+    pub fn is_url_allowed(&self, url: &str) -> bool {
         let denied = self.denied.iter().any(|entry| match entry.as_ref() {
-            Entry::Url(url_pattern) => url_pattern.matches(url.as_str()),
+            Entry::Url(url_pattern) => url_pattern.matches(url),
             Entry::Path { .. } => false,
         });
         if denied {
             false
         } else {
             self.allowed.iter().any(|entry| match entry.as_ref() {
-                Entry::Url(url_pattern) => url_pattern.matches(url.as_str()),
+                Entry::Url(url_pattern) => url_pattern.matches(url),
                 Entry::Path { .. } => false,
             })
         }
     }
 
-    pub fn is_path_allowed(&self, path: &str) -> crate::Result<bool> {
+    pub fn is_path_allowed(&self, path: &Path) -> crate::Result<bool> {
         let fs_scope = tauri::fs::Scope::new(
             self.manager,
             &tauri::utils::config::FsScope::Scope {

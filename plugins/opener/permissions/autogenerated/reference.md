@@ -3,7 +3,7 @@
 This permission set allows opening `mailto:`, `tel:`, `https://` and `http://` urls using their default application
 as well as reveal file in directories using default file explorer
 
-- `allow-open`
+- `allow-open-url`
 - `allow-reveal-item-in-dir`
 - `allow-default-urls`
 
@@ -51,6 +51,58 @@ Enables the open command without any pre-configured scope.
 <td>
 
 Denies the open command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`opener:allow-open-path`
+
+</td>
+<td>
+
+Enables the open_path command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`opener:deny-open-path`
+
+</td>
+<td>
+
+Denies the open_path command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`opener:allow-open-url`
+
+</td>
+<td>
+
+Enables the open_url command without any pre-configured scope.
+
+</td>
+</tr>
+
+<tr>
+<td>
+
+`opener:deny-open-url`
+
+</td>
+<td>
+
+Denies the open_url command without any pre-configured scope.
 
 </td>
 </tr>

@@ -34,31 +34,57 @@ export type Program =
   | 'wslview'
 
 /**
- * Opens a path or URL with the system's default app,
- * or the one specified with `openWith`.
- *
- * The `openWith` value must be one of `firefox`, `google chrome`, `chromium` `safari`,
- * `open`, `start`, `xdg-open`, `gio`, `gnome-open`, `kde-open` or `wslview`.
+ * Opens a url with the system's default app, or the one specified with {@linkcode openWith}.
  *
  * @example
  * ```typescript
- * import { open } from '@tauri-apps/plugin-opener';
+ * import { openUrl } from '@tauri-apps/plugin-opener';
+ *
  * // opens the given URL on the default browser:
- * await open('https://github.com/tauri-apps/tauri');
+ * await openUrl('https://github.com/tauri-apps/tauri');
  * // opens the given URL using `firefox`:
- * await open('https://github.com/tauri-apps/tauri', 'firefox');
- * // opens a file using the default program:
- * await open('/path/to/file');
+ * await openUrl('https://github.com/tauri-apps/tauri', 'firefox');
  * ```
  *
- * @param path The path or URL to open.
- * @param openWith The app to open the file or URL with.
- * Defaults to the system default application for the specified path type.
+ * @param url The URL to open.
+ * @param openWith The app to open the URL with.
+ * Must be one of `firefox`, `google chrome`, `chromium` `safari`, `open`, `start`, `xdg-open`, `gio`, `gnome-open`, `kde-open` or `wslview`.
+ * If not specified, defaults to the system default application for the specified url type.
  *
  * @since 2.0.0
  */
-export async function open(path: string, openWith?: Program): Promise<void> {
-  await invoke('plugin:opener|open', {
+export async function openUrl(url: string, openWith?: Program): Promise<void> {
+  await invoke('plugin:opener|open_url', {
+    url,
+    with: openWith
+  })
+}
+
+/**
+ * Opens a path with the system's default app, or the one specified with {@linkcode openWith}.
+ *
+ * @example
+ * ```typescript
+ * import { openPath } from '@tauri-apps/plugin-opener';
+ *
+ * // opens a file using the default program:
+ * await openPath('/path/to/file');
+ * // opens a file using `start` command on Windows.
+ * await openPath('C:/path/to/file', 'start');
+ * ```
+ *
+ * @param path The path to open.
+ * @param openWith The app to open the path with.
+ * Must be one of `firefox`, `google chrome`, `chromium` `safari`, `open`, `start`, `xdg-open`, `gio`, `gnome-open`, `kde-open` or `wslview`.
+ * If not specified, defaults to the system default application for the specified path type.
+ *
+ * @since 2.0.0
+ */
+export async function openPath(
+  path: string,
+  openWith?: Program
+): Promise<void> {
+  await invoke('plugin:opener|open_path', {
     path,
     with: openWith
   })

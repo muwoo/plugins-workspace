@@ -6,7 +6,7 @@
 
 use serde::{Deserialize, Deserializer};
 
-use std::{fmt::Display, str::FromStr};
+use std::{ffi::OsStr, fmt::Display, path::Path, str::FromStr};
 
 /// Program to use on the [`open()`] call.
 #[derive(Debug)]
@@ -123,40 +123,44 @@ impl Program {
     }
 }
 
-/// Opens path or URL with the program specified in `with`, or system default if `None`.
-///
-/// The path will be matched against the shell open validation regex, defaulting to `^((mailto:\w+)|(tel:\w+)|(https?://\w+)).+`.
-/// A custom validation regex may be supplied in the config in `plugins > shell > scope > open`.
-///
-/// # Examples
-///
-/// ```rust,no_run
-/// use tauri_plugin_shell::ShellExt;
-/// tauri::Builder::default()
-///   .setup(|app| {
-///     // open the given URL on the system default browser
-///     app.shell().open("https://github.com/tauri-apps/tauri", None)?;
-///     Ok(())
-///   });
-/// ```
-pub fn open<P: AsRef<str>>(path: P, with: Option<Program>) -> crate::Result<()> {
-    let path = path.as_ref();
-
-    // // ensure we pass validation if the configuration has one
-    // if let Some(regex) = &scope.open {
-    //     if !regex.is_match(path) {
-    //         return Err(Error::Validation {
-    //             index: 0,
-    //             validation: regex.as_str().into(),
-    //         });
-    //     }
-    // }
-
-    // The prevention of argument escaping is handled by the usage of std::process::Command::arg by
-    // the `open` dependency. This behavior should be re-confirmed during upgrades of `open`.
+pub(crate) fn open<P: AsRef<OsStr>>(path: P, with: Option<Program>) -> crate::Result<()> {
     match with.map(Program::name) {
         Some(program) => ::open::with_detached(path, program),
         None => ::open::that_detached(path),
     }
     .map_err(Into::into)
+}
+
+/// Opens URL with the program specified in `with`, or system default if `None`.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// tauri::Builder::default()
+///   .setup(|app| {
+///     // open the given URL on the system default browser
+///     tauri_plugin_opener::open_url("https://github.com/tauri-apps/tauri", None)?;
+///     Ok(())
+///   });
+/// ```
+pub fn open_url<P: AsRef<str>>(url: P, with: Option<Program>) -> crate::Result<()> {
+    let url = url.as_ref();
+    open(url, with)
+}
+
+/// Opens path with the program specified in `with`, or system default if `None`.
+///
+/// # Examples
+///
+/// ```rust,no_run
+/// tauri::Builder::default()
+///   .setup(|app| {
+///     // open the given URL on the system default browser
+///     tauri_plugin_opener::open_path("/path/to/file", None)?;
+///     Ok(())
+///   });
+/// ```
+pub fn open_path<P: AsRef<Path>>(path: P, with: Option<Program>) -> crate::Result<()> {
+    let path = path.as_ref();
+    open(path, with)
 }
