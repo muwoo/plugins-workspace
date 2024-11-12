@@ -5,36 +5,39 @@
 import { invoke } from '@tauri-apps/api/core'
 
 // open <a href="..."> links with the API
-function openLinks(): void {
-  document.querySelector('body')?.addEventListener('click', function (e) {
-    let target: HTMLElement | null = e.target as HTMLElement
-    while (target) {
-      if (target.matches('a')) {
-        const t = target as HTMLAnchorElement
-        if (
-          t.href !== '' &&
-          ['http://', 'https://', 'mailto:', 'tel:'].some((v) =>
-            t.href.startsWith(v)
-          ) &&
-          t.target === '_blank'
-        ) {
-          void invoke('plugin:opener|open', {
-            path: t.href
-          })
-          e.preventDefault()
-        }
-        break
-      }
-      target = target.parentElement
-    }
-  })
-}
+window.addEventListener('click', function (evt) {
+  if (
+    evt.defaultPrevented ||
+    evt.button !== 0 ||
+    evt.metaKey ||
+    evt.altKey ||
+    evt.ctrlKey ||
+    evt.shiftKey
+  )
+    return
 
-if (
-  document.readyState === 'complete' ||
-  document.readyState === 'interactive'
-) {
-  openLinks()
-} else {
-  window.addEventListener('DOMContentLoaded', openLinks, true)
-}
+  const a = evt
+    .composedPath()
+    .find((el) => el instanceof Node && el.nodeName.toUpperCase() === 'A') as
+    | HTMLAnchorElement
+    | undefined
+
+  // only open if supposed to be open in a new tab
+  if (!a || !a.href || a.target !== '_blank') return
+
+  const url = new URL(a.href)
+
+  if (
+    // only open if not same origin
+    url.origin === window.location.origin ||
+    // only open default protocols
+    ['http:', 'https:', 'mailto:', 'tel:'].every((p) => url.protocol !== p)
+  )
+    return
+
+  evt.preventDefault()
+
+  void invoke('plugin:opener|open_url', {
+    path: url
+  })
+})
