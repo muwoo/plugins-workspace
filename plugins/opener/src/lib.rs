@@ -73,9 +73,9 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .js_init_script(include_str!("init-iife.js").to_string())
         .setup(|app, _api| {
             #[cfg(target_os = "android")]
-            let handle = api.register_android_plugin(PLUGIN_IDENTIFIER, "OpenerPlugin")?;
+            let handle = _api.register_android_plugin(PLUGIN_IDENTIFIER, "OpenerPlugin")?;
             #[cfg(target_os = "ios")]
-            let handle = api.register_ios_plugin(init_plugin_opener)?;
+            let handle = _api.register_ios_plugin(init_plugin_opener)?;
 
             app.manage(Opener {
                 app: app.clone(),

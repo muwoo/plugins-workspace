@@ -6564,18 +6564,17 @@ name = "tauri-plugin-opener"
 version = "1.0.0"
 dependencies = [
  "dunce",
+ "glob",
  "objc2-app-kit",
  "objc2-foundation",
  "open",
- "regex",
  "schemars",
  "serde",
  "serde_json",
  "tauri",
  "tauri-plugin",
- "thiserror",
+ "thiserror 2.0.3",
  "url",
- "urlpattern",
  "windows 0.54.0",
  "zbus",
 ]

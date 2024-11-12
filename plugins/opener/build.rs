@@ -15,15 +15,12 @@ mod scope;
 enum OpenerScopeEntry {
     Url {
         /// A URL that can be opened by the webview when using the Opener APIs.
-        /// Wildcards can be used following the URL pattern standard.
         ///
-        /// See [the URL Pattern spec](https://urlpattern.spec.whatwg.org/) for more information.
+        /// Wildcards can be used following the UNIX glob pattern.
         ///
         /// Examples:
         ///
-        /// - "https://*" : allows all HTTPS origin on port 443
-        ///
-        /// - "https://*:*" : allows all HTTPS origin on any port
+        /// - "https://*" : allows all HTTPS origin
         ///
         /// - "https://*.github.com/tauri-apps/tauri": allows any subdomain of "github.com" with the "tauri-apps/api" path
         ///

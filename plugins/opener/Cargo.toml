@@ -1,6 +1,7 @@
 [package]
 name = "tauri-plugin-opener"
 version = "1.0.0"
+description = "Open files and URLs using their default application."
 edition = { workspace = true }
 authors = { workspace = true }
 license = { workspace = true }
@@ -26,8 +27,6 @@ ios = { level = "partial", notes = "Only allows to open URLs via `open`" }
 tauri-plugin = { workspace = true, features = ["build"] }
 schemars = { workspace = true }
 serde = { workspace = true }
-urlpattern = { workspace = true }
-regex = "1"
 
 [dependencies]
 serde = { workspace = true }
@@ -35,9 +34,8 @@ serde_json = { workspace = true }
 tauri = { workspace = true }
 thiserror = { workspace = true }
 open = { version = "5", features = ["shellexecute-on-windows"] }
-urlpattern = { workspace = true }
-regex = "1"
 url = { workspace = true }
+glob = { workspace = true }
 
 [target."cfg(windows)".dependencies]
 dunce = { workspace = true }

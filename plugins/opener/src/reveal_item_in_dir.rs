@@ -183,5 +183,7 @@ mod imp {
             let workspace = NSWorkspace::new();
             workspace.activateFileViewerSelectingURLs(&urls);
         }
+
+        Ok(())
     }
 }

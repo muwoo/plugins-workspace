@@ -7,35 +7,13 @@ use std::{marker::PhantomData, path::PathBuf, sync::Arc};
 use tauri::{ipc::ScopeObject, utils::acl::Value, AppHandle, Manager, Runtime};
 
 use url::Url;
-use urlpattern::UrlPatternMatchInput;
 
 use crate::{scope_entry::EntryRaw, Error};
 
 #[derive(Debug)]
 pub enum Entry {
-    Url(Box<urlpattern::UrlPattern>),
+    Url(glob::Pattern),
     Path(Option<PathBuf>),
-}
-
-fn parse_url_pattern(
-    s: &str,
-) -> std::result::Result<urlpattern::UrlPattern, urlpattern::quirks::Error> {
-    let mut init = urlpattern::UrlPatternInit::parse_constructor_string::<regex::Regex>(s, None)?;
-    if init.search.as_ref().map(|p| p.is_empty()).unwrap_or(true) {
-        init.search.replace("*".to_string());
-    }
-    if init.hash.as_ref().map(|p| p.is_empty()).unwrap_or(true) {
-        init.hash.replace("*".to_string());
-    }
-    if init
-        .pathname
-        .as_ref()
-        .map(|p| p.is_empty() || p == "/")
-        .unwrap_or(true)
-    {
-        init.pathname.replace("*".to_string());
-    }
-    urlpattern::UrlPattern::parse(init, Default::default())
 }
 
 impl ScopeObject for Entry {
@@ -48,14 +26,10 @@ impl ScopeObject for Entry {
         serde_json::from_value(raw.into())
             .and_then(|raw| {
                 let entry = match raw {
-                    EntryRaw::Url { url } => {
-                        let url_pattern = parse_url_pattern(&url).map_err(|e| {
-                            serde::de::Error::custom(format!(
-                                "`{url}` is not a valid URL pattern: {e}"
-                            ))
-                        })?;
-                        Entry::Url(Box::new(url_pattern))
-                    }
+                    EntryRaw::Url { url } => Entry::Url(
+                        glob::Pattern::new(&url)
+                            .map_err(|e| serde::de::Error::custom(e.to_string()))?,
+                    ),
                     EntryRaw::Path { path } => {
                         let path = match app.path().parse(path) {
                             Ok(path) => Some(path),
@@ -106,18 +80,14 @@ impl<'a, R: Runtime, M: Manager<R>> Scope<'a, R, M> {
 
     pub fn is_url_allowed(&self, url: Url) -> bool {
         let denied = self.denied.iter().any(|entry| match entry.as_ref() {
-            Entry::Url(url_pattern) => url_pattern
-                .test(UrlPatternMatchInput::Url(url.clone()))
-                .unwrap_or_default(),
+            Entry::Url(url_pattern) => url_pattern.matches(url.as_str()),
             Entry::Path { .. } => false,
         });
         if denied {
             false
         } else {
             self.allowed.iter().any(|entry| match entry.as_ref() {
-                Entry::Url(url_pattern) => url_pattern
-                    .test(UrlPatternMatchInput::Url(url.clone()))
-                    .unwrap_or_default(),
+                Entry::Url(url_pattern) => url_pattern.matches(url.as_str()),
                 Entry::Path { .. } => false,
             })
         }
