@@ -20,6 +20,19 @@
 
 import { invoke } from '@tauri-apps/api/core'
 
+export type Program =
+  | 'firefox'
+  | 'google chrome'
+  | 'chromium'
+  | 'safari'
+  | 'open'
+  | 'start'
+  | 'xdg-open'
+  | 'gio'
+  | 'gnome-open'
+  | 'kde-open'
+  | 'wslview'
+
 /**
  * Opens a path or URL with the system's default app,
  * or the one specified with `openWith`.
@@ -44,7 +57,7 @@ import { invoke } from '@tauri-apps/api/core'
  *
  * @since 2.0.0
  */
-export async function open(path: string, openWith?: string): Promise<void> {
+export async function open(path: string, openWith?: Program): Promise<void> {
   await invoke('plugin:opener|open', {
     path,
     with: openWith
