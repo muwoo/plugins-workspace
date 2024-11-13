@@ -1,5 +1,9 @@
 # Changelog
 
+## \[2.0.3]
+
+- [`3e78173d`](https://github.com/tauri-apps/plugins-workspace/commit/3e78173df9ce90aa3b19e1f36d1f8712c5020fb6) ([#2018](https://github.com/tauri-apps/plugins-workspace/pull/2018) by [@amrbashir](https://github.com/tauri-apps/plugins-workspace/../../amrbashir)) Fix `readDir` function failing to read directories that contain broken symlinks.
+
 ## \[2.0.2]
 
 - [`77149dc4`](https://github.com/tauri-apps/plugins-workspace/commit/77149dc4320d26b413e4a6bbe82c654367c51b32) ([#1965](https://github.com/tauri-apps/plugins-workspace/pull/1965) by [@amrbashir](https://github.com/tauri-apps/plugins-workspace/../../amrbashir)) Fix `writeTextFile` converting UTF-8 characters (for example `äöü`) in the given path into replacement character (`�`)
