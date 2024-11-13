@@ -16,7 +16,7 @@ pub async fn open_url<R: Runtime>(
     app: AppHandle<R>,
     command_scope: CommandScope<crate::scope::Entry>,
     global_scope: GlobalScope<crate::scope::Entry>,
-    path: String,
+    url: String,
     with: Option<Program>,
 ) -> crate::Result<()> {
     let scope = Scope::new(
@@ -33,10 +33,10 @@ pub async fn open_url<R: Runtime>(
             .collect(),
     );
 
-    if scope.is_url_allowed(&path) {
-        crate::open_url(path, with)
+    if scope.is_url_allowed(&url) {
+        crate::open_url(url, with)
     } else {
-        Err(Error::ForbiddenUrl(path))
+        Err(Error::ForbiddenUrl(url))
     }
 }
 
