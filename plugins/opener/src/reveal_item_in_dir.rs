@@ -64,10 +64,10 @@ mod imp {
             .ok_or_else(|| crate::Error::NoParent(file.to_path_buf()))?;
 
         let dir = HSTRING::from(dir);
-        let dir_item = unsafe { ILCreateFromPathW(PCWSTR::from_raw(dir.as_ptr())) };
+        let dir_item = unsafe { ILCreateFromPathW(&dir) };
 
         let file_h = HSTRING::from(file);
-        let file_item = unsafe { ILCreateFromPathW(PCWSTR::from_raw(file_h.as_ptr())) };
+        let file_item = unsafe { ILCreateFromPathW(&file_h) };
 
         unsafe {
             if let Err(e) = SHOpenFolderAndSelectItems(dir_item, Some(&[file_item]), 0) {
@@ -86,7 +86,10 @@ mod imp {
                         ..std::mem::zeroed()
                     };
 
-                    ShellExecuteExW(&mut info)?;
+                    ShellExecuteExW(&mut info).inspect_err(|_| {
+                        ILFree(Some(dir_item));
+                        ILFree(Some(file_item));
+                    })?;
                 }
             }
         }
