@@ -6,14 +6,7 @@ import { invoke } from '@tauri-apps/api/core'
 
 // open <a href="..."> links with the API
 window.addEventListener('click', function (evt) {
-  if (
-    evt.defaultPrevented ||
-    evt.button !== 0 ||
-    evt.metaKey ||
-    evt.altKey ||
-    evt.ctrlKey ||
-    evt.shiftKey
-  )
+  if (evt.defaultPrevented || evt.button !== 0 || evt.metaKey || evt.altKey)
     return
 
   const a = evt
@@ -22,8 +15,13 @@ window.addEventListener('click', function (evt) {
     | HTMLAnchorElement
     | undefined
 
-  // only open if supposed to be open in a new tab
-  if (!a || !a.href || a.target !== '_blank') return
+  if (
+    !a ||
+    !a.href ||
+    // only open if supposed to be open in a new tab
+    !(a.target === '_blank' || evt.ctrlKey || evt.shiftKey)
+  )
+    return
 
   const url = new URL(a.href)
 
