@@ -160,7 +160,7 @@ async fn connect<R: Runtime>(
     connect_async_tls_with_config(request, config.map(Into::into), false, tls_connector)
       .await?;
   #[cfg(not(any(feature = "rustls-tls", feature = "native-tls")))]
-    let (ws_stream, _) = connect_async_with_config(request, config.map(Into::into), false).await?;
+    let (ws_stream, _) = connect_async_with_config(request, config.clone().map(Into::into), false).await?;
 
   tauri::async_runtime::spawn(async move {
     // 在建立 WebSocket 连接时，通常会将连接分为两个部分
@@ -174,10 +174,12 @@ async fn connect<R: Runtime>(
 
     // 将 window 和 config 转换为 Arc<Mutex<T>> 类型, 以便在异步闭包中使用
     let window_arc = Arc::new(Mutex::new(window));
+    let config_arc = Arc::new(Mutex::new(config));
 
     // read 是一个异步流，使用 for_each 处理方法来处理接收到的消息
     read.for_each(move |message| {
       let window_ = Arc::clone(&window_arc); // 克隆 Arc
+      let config_ = Arc::clone(&config_arc); // 克隆 Arc
       let on_message_ = on_message.clone();
       async move {
         if let Ok(Message::Close(_)) = message {
@@ -209,7 +211,10 @@ async fn connect<R: Runtime>(
           Ok(Message::Frame(_)) => serde_json::Value::Null, // This value can't be recieved.
           Err(e) => serde_json::to_value(Error::from(e)).unwrap(),
         };
-        let _ = on_message_.send(json!({ "id": id, "message": response }));
+
+        if let Some(agent_id) = config_.lock().await.as_ref().and_then(|c| c.agent_id.as_ref()) {
+          let _ = window_.lock().await.eval(format!("window.frames['{}']?._ws_onmessage({}, {})", &agent_id, &response, id).as_str());
+        }
       }
     })
       .await;
