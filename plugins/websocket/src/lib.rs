@@ -3,6 +3,7 @@ use futures_util::{stream::SplitSink, SinkExt, StreamExt};
 use http::header::{HeaderName, HeaderValue};
 use serde::{ser::Serializer, Deserialize, Serialize};
 use tauri::{
+  AppHandle,
   ipc::Channel,
   plugin::{Builder as PluginBuilder, TauriPlugin},
   Manager, Runtime, State, Window,
@@ -58,6 +59,7 @@ struct TlsConnector(Mutex<Option<Connector>>);
 
 #[derive(Deserialize)]
 #[serde(untagged, rename_all = "camelCase")]
+#[derive(Clone)]
 enum Max {
   None,
   Number(usize),
@@ -65,6 +67,7 @@ enum Max {
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
+#[derive(Clone)]
 pub(crate) struct ConnectionConfig {
   pub read_buffer_size: Option<usize>,
   pub write_buffer_size: Option<usize>,
@@ -74,6 +77,7 @@ pub(crate) struct ConnectionConfig {
   #[serde(default)]
   pub accept_unmasked_frames: bool,
   pub headers: Option<Vec<(String, String)>>,
+  pub agent_id: Option<String>,
 }
 
 impl From<ConnectionConfig> for WebSocketConfig {
@@ -132,12 +136,13 @@ use std::sync::Arc;
 
 #[tauri::command]
 async fn connect<R: Runtime>(
+  app: &AppHandle<R>,
   window: Window<R>,
   url: String,
   on_message: Channel<serde_json::Value>,
   config: Option<ConnectionConfig>,
 ) -> Result<Id> {
-  println!("connect: {:?}", url);
+  println!("connect: {:?}", config);
   let id = rand::random();
   let mut request = url.into_client_request()?;
 
@@ -157,7 +162,7 @@ async fn connect<R: Runtime>(
 
   #[cfg(any(feature = "rustls-tls", feature = "native-tls"))]
     let (ws_stream, _) =
-    connect_async_tls_with_config(request, config.map(Into::into), false, tls_connector)
+    connect_async_tls_with_config(request, config.clone().map(Into::into), false, tls_connector)
       .await?;
   #[cfg(not(any(feature = "rustls-tls", feature = "native-tls")))]
     let (ws_stream, _) = connect_async_with_config(request, config.clone().map(Into::into), false).await?;
@@ -180,6 +185,7 @@ async fn connect<R: Runtime>(
     read.for_each(move |message| {
       let window_ = Arc::clone(&window_arc); // 克隆 Arc
       let config_ = Arc::clone(&config_arc); // 克隆 Arc
+      let app_ = app.clone();
       let on_message_ = on_message.clone();
       async move {
         if let Ok(Message::Close(_)) = message {
@@ -211,9 +217,9 @@ async fn connect<R: Runtime>(
           Ok(Message::Frame(_)) => serde_json::Value::Null, // This value can't be recieved.
           Err(e) => serde_json::to_value(Error::from(e)).unwrap(),
         };
-
         if let Some(agent_id) = config_.lock().await.as_ref().and_then(|c| c.agent_id.as_ref()) {
-          let _ = window_.lock().await.eval(format!("window.frames['{}']?._ws_onmessage({}, {})", &agent_id, &response, id).as_str());
+          println!("send to agent: {}", agent_id);
+          app_.get_webview_window("main").unwrap().eval(format!("window.frames['{}']?._ws_onmessage({}, {})", &agent_id, &response, id).as_str());
         }
       }
     })
@@ -272,7 +278,7 @@ impl Builder {
   pub fn build<R: Runtime>(self) -> TauriPlugin<R> {
     PluginBuilder::new("websocket")
       .invoke_handler(tauri::generate_handler![connect, send])
-      .setup(|app, _api| {
+      .setup(move |app, _api| {
         app.manage(ConnectionManager::default());
         #[cfg(any(feature = "rustls-tls", feature = "native-tls"))]
         app.manage(TlsConnector(Mutex::new(self.tls_connector)));
